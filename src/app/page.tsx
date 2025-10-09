@@ -4,6 +4,8 @@ import Schedule from "./components/Schedule";
 import TaskForm from "./components/TaskForm";
 import { Task } from "./types";
 
+//..
+
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
 
