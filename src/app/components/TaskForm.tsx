@@ -1,6 +1,5 @@
 "use client";
 import { useState, useMemo } from "react";
-import { mutate } from "swr";
 import { Task } from "../types";
 
 // --- Opciones con tipos literales ---
@@ -89,19 +88,10 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
       description,
     };
 
+    // Persist locally using the provided callback
     onAddTask?.(newTask);
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 500);
-
-    await fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newTask),
-    });
-
-    mutate("/api/tasks");
-
-    onAddTask?.(newTask);
 
     // Si quieres cerrar el panel automáticamente al crear:
     // onClosePanel?.();
@@ -116,7 +106,9 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
     setPeriodicity("weekly");
     setPriority("low");
     setDescription("");
-    setSubmitting(false);
+  // cerrar panel si el padre lo solicita
+  onClosePanel?.();
+  setSubmitting(false);
   };
 
   return (

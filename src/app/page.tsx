@@ -1,24 +1,21 @@
 "use client";
-import { useState } from "react";
+// ...existing code...
 import Schedule from "./components/Schedule";
 import TaskForm from "./components/TaskForm";
-import { Task } from "./types";
+// ...existing code...
 import { useTaskPanel } from "./context/TaskPanelContext";
+import { useLocalTasks } from "./hooks/useLocalTasks";
 
 export default function Home() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { tasks, addTask, removeTask, updateTask, sortTasks } = useLocalTasks();
   const { isTaskPanelOpen, closeTaskPanel } = useTaskPanel();
-
-  const handleAddTask = (task: Task) => {
-    setTasks((prev) => [...prev, task]);
-  };
 
   return (
     <main className="min-h-screen flex flex-col">
       <section className="flex-1 flex gap-8 p-4">
         <div className="flex-1">
           <h2 className="text-xl font-bold mb-4">Mi Horario</h2>
-          <Schedule tasks={tasks} />
+          <Schedule tasks={tasks} handlers={{ removeTask, updateTask, sortTasks }} />
         </div>
 
         {/* Panel lateral para crear tarea */}
@@ -38,7 +35,7 @@ export default function Home() {
               <h2 className="text-xl font-bold">Nueva tarea</h2>
             </div>
 
-            <TaskForm onAddTask={handleAddTask} onClosePanel={closeTaskPanel} />
+            <TaskForm onAddTask={addTask} onClosePanel={closeTaskPanel} />
           </div>
         )}
       </section>

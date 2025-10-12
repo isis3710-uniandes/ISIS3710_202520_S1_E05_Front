@@ -3,7 +3,13 @@ import { Task } from "../types";
 import useSWR, { mutate as swrMutate } from "swr";
 import { AnimatePresence, motion } from "framer-motion";
 
-type Props = { tasks?: Task[] };
+type TaskHandlers = {
+  removeTask?: (id: string) => void;
+  updateTask?: (id: string, patch: Partial<Task>) => void;
+  sortTasks?: (by: "day-start" | "date" | "project" | "priority") => void;
+};
+
+type Props = { tasks?: Task[]; handlers?: TaskHandlers };
 
 const days = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -341,13 +347,13 @@ function EditModal({
 }
 
 /* ========== Componente principal ========== */
-export default function Schedule({ tasks: propTasks }: Props) {
+export default function Schedule({ tasks: propTasks, handlers }: Props) {
   const { data: swrTasks } = useSWR<CalendarTask[]>("/api/tasks", fetcher, {
     fallbackData: [],
   });
 
   const isExternal = Array.isArray(propTasks);
-  const source = (isExternal ? propTasks : swrTasks) ?? [];
+  const source = useMemo(() => (isExternal ? propTasks : swrTasks) ?? [], [isExternal, propTasks, swrTasks]);
 
   // Semana activa
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeekMonday(new Date()));
@@ -358,10 +364,6 @@ export default function Schedule({ tasks: propTasks }: Props) {
     setList(source);
   }, [source]);
 
-  const hours = useMemo(
-    () => Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i),
-    []
-  );
 
   // Navegación semanal
   function goPrevWeek() { setWeekStart((s) => addDays(s, -7)); }
@@ -385,6 +387,19 @@ export default function Schedule({ tasks: propTasks }: Props) {
     const prev = list;
     const next = prev.filter((t) => t.id !== id);
     setList(next);
+
+    // If parent provided handlers (local), use them
+    if (handlers?.removeTask) {
+      try {
+        handlers.removeTask(id);
+        return;
+      } catch (e) {
+        setList(prev);
+        setError(e instanceof Error ? e.message : "Error al eliminar localmente.");
+        return;
+      }
+    }
+
     if (!isExternal) swrMutate("/api/tasks", next, false);
 
     try {
@@ -418,6 +433,20 @@ export default function Schedule({ tasks: propTasks }: Props) {
 
     setList(next);
     if (!isExternal) swrMutate("/api/tasks", next, false);
+    // If handlers provided, use local update
+    if (handlers?.updateTask) {
+      try {
+        handlers.updateTask(id, edited as Partial<Task>);
+        closeEdit();
+        return;
+      } catch (e) {
+        const prev = source;
+        setList(prev);
+        setSaving(false);
+        setError(e instanceof Error ? e.message : "Error al guardar localmente.");
+        return;
+      }
+    }
 
     try {
       const res = await apiPatchTask(id, edited);
@@ -488,7 +517,7 @@ export default function Schedule({ tasks: propTasks }: Props) {
         </div>
 
         {/* Columnas por día */}
-        {columnDates.map((colDate, dayIndex) => {
+  {columnDates.map((colDate) => {
           const iso = toISODate(colDate);
           return (
             <div key={iso} className="relative">
@@ -507,8 +536,6 @@ export default function Schedule({ tasks: propTasks }: Props) {
                     const endClamped = Math.min(END_HOUR * 60, endMin);
 
                     const top = startMin * PX_PER_MIN;
-                    const height = Math.max(24, (endClamped - startMin) * PX_PER_MIN);
-
                     const startLabel = task.startTime ?? `${String(task.start).padStart(2, "0")}:00`;
                     const endLabel   = task.endTime   ?? `${String(task.end).padStart(2, "0")}:00`;
 
