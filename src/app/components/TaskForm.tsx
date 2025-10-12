@@ -106,9 +106,8 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
   setSubmitting(false);
   };
 
-  // local orgs for the selector and inline creation
-  const { orgs, addOrg, sortOrgs } = useLocalOrgs();
-  const [newOrgName, setNewOrgName] = useState("");
+  // local orgs for the selector (created from the Organizacion page)
+  const { orgs } = useLocalOrgs();
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2">
@@ -147,30 +146,7 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
             <option value="external">Externa</option>
           </select>
 
-          {/* Inline create org */}
-          <div className="flex gap-1">
-            <input
-              type="text"
-              placeholder="Nueva org"
-              value={newOrgName}
-              onChange={(e) => setNewOrgName(e.target.value)}
-              className="border p-2 rounded"
-            />
-            <button
-              type="button"
-              className="px-3 py-2 rounded bg-gray-100"
-              onClick={() => {
-                const name = newOrgName.trim();
-                if (!name) return;
-                const created = addOrg(name);
-                setOrganization(created.id);
-                setNewOrgName("");
-                sortOrgs?.("name");
-              }}
-            >
-              ➕
-            </button>
-          </div>
+          {/* No inline org creation here — create organizations in the "Organización" page */}
         </div>
       </div>
 
