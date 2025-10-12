@@ -21,14 +21,9 @@ const PRIORITIES = [
 
 type Priority = typeof PRIORITIES[number]["value"];
 
-const ORGANIZATIONS = [
-  { value: "", label: "Selecciona una organización" },
-  { value: "mine", label: "Mis organizaciones" },
-  { value: "team", label: "Equipo de trabajo" },
-  { value: "external", label: "Externa" },
-] as const;
+import { useLocalOrgs } from "../hooks/useLocalOrgs";
 
-type Organization = typeof ORGANIZATIONS[number]["value"];
+type Organization = string; // will store org id or special values like "external"
 
 // ⬇️ Agregado: onClosePanel es opcional
 type Props = {
@@ -111,6 +106,10 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
   setSubmitting(false);
   };
 
+  // local orgs for the selector and inline creation
+  const { orgs, addOrg, sortOrgs } = useLocalOrgs();
+  const [newOrgName, setNewOrgName] = useState("");
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2">
       {/* Título */}
@@ -132,18 +131,47 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
           onChange={(e) => setProject(e.target.value)}
           className="border p-2 rounded"
         />
-        <select
-          value={organization}
-          onChange={(e) => setOrganization(e.target.value as Organization)}
-          className="border p-2 rounded"
-          required
-        >
-          {ORGANIZATIONS.map((org) => (
-            <option key={org.value} value={org.value}>
-              {org.label}
-            </option>
-          ))}
-        </select>
+        <div className="flex gap-2">
+          <select
+            value={organization}
+            onChange={(e) => setOrganization(e.target.value as Organization)}
+            className="border p-2 rounded flex-1"
+            required
+          >
+            <option value="">Selecciona una organización</option>
+            {orgs.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+            <option value="external">Externa</option>
+          </select>
+
+          {/* Inline create org */}
+          <div className="flex gap-1">
+            <input
+              type="text"
+              placeholder="Nueva org"
+              value={newOrgName}
+              onChange={(e) => setNewOrgName(e.target.value)}
+              className="border p-2 rounded"
+            />
+            <button
+              type="button"
+              className="px-3 py-2 rounded bg-gray-100"
+              onClick={() => {
+                const name = newOrgName.trim();
+                if (!name) return;
+                const created = addOrg(name);
+                setOrganization(created.id);
+                setNewOrgName("");
+                sortOrgs?.("name");
+              }}
+            >
+              ➕
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Fecha */}

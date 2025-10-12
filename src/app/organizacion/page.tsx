@@ -10,46 +10,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 /* ----------------------- Types ----------------------- */
-type Org = {
-  id: string;
-  name: string;
-  emails: string[]; // demo only
-  createdAt: string;
-};
+import { useLocalOrgs } from "../../app/hooks/useLocalOrgs";
 
 /* ----------------------- Utils ----------------------- */
-const uid = () => Math.random().toString(36).slice(2);
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
-
-function useLocalStorage<T>(key: string, initialValue: T) {
-  const [value, setValue] = useState<T>(initialValue);
-
-  // load
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw) setValue(JSON.parse(raw));
-    } catch {
-      // silencio absoluto, como tu fuerza de voluntad un domingo
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
-
-  // save
-  useEffect(() => {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch {
-      // si revienta el storage, no es culpa mía
-    }
-  }, [key, value]);
-
-  return [value, setValue] as const;
-}
 
 /* ----------------------- Page ----------------------- */
 export default function OrgsPage() {
-  const [orgs, setOrgs] = useLocalStorage<Org[]>("_demo_orgs", []);
+  const { orgs, addOrg, deleteOrg } = useLocalOrgs();
   const [selectedOrgId, setSelectedOrgId] = useState<string>("");
 
   useEffect(() => {
@@ -61,19 +29,13 @@ export default function OrgsPage() {
     [orgs, selectedOrgId]
   );
 
-  function addOrg(name: string, emails: string[]) {
-    const org: Org = {
-      id: uid(),
-      name,
-      emails,
-      createdAt: new Date().toISOString(),
-    };
-    setOrgs((prev) => [org, ...prev]);
-    setSelectedOrgId(org.id);
+  function handleAddOrg(name: string, emails: string[]) {
+    const created = addOrg(name, emails);
+    setSelectedOrgId(created.id);
   }
 
-  function deleteOrg(id: string) {
-    setOrgs((prev) => prev.filter((o) => o.id !== id));
+  function handleDeleteOrg(id: string) {
+    deleteOrg(id);
     if (selectedOrgId === id) setSelectedOrgId("");
   }
 
@@ -87,7 +49,7 @@ export default function OrgsPage() {
         {/* Crear organización */}
         <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <h2 className="text-lg font-medium mb-3">Crear nueva organización</h2>
-          <CreateOrgForm onCreate={addOrg} />
+          <CreateOrgForm onCreate={handleAddOrg} />
         </section>
 
         {/* Selector y listado */}
@@ -117,8 +79,7 @@ export default function OrgsPage() {
                 <div className="min-w-0">
                   <div className="font-medium truncate">{o.name}</div>
                   <div className="text-xs text-white/60 truncate">
-                    {o.emails.length} miembro(s) ·{" "}
-                    {new Date(o.createdAt).toLocaleString()}
+                    {o.emails.length} miembro(s) {"\u00b7"} {new Date(o.createdAt).toLocaleString()}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -132,11 +93,10 @@ export default function OrgsPage() {
                     className="text-xs px-3 py-1 rounded-md border border-red-500/40 text-red-400 hover:bg-red-500/10 transition"
                     onClick={() => {
                       if (
-                        confirm(
-                          `¿Eliminar "${o.name}"? Esta acción no se puede deshacer.`
-                        )
-                      )
-                        deleteOrg(o.id);
+                        confirm(`¿Eliminar "${o.name}"? Esta acción no se puede deshacer.`)
+                      ) {
+                        handleDeleteOrg(o.id);
+                      }
                     }}
                   >
                     Eliminar
@@ -145,8 +105,6 @@ export default function OrgsPage() {
               </li>
             ))}
           </ul>
-
-          {/* Detalle de la seleccionada */}
           {selectedOrg && (
             <div className="mt-4 rounded-xl border border-white/10 p-4">
               <div className="text-sm text-white/70">Organización seleccionada</div>
