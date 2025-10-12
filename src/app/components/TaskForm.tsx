@@ -1,111 +1,251 @@
 "use client";
-import { useState } from "react";
-import { Task } from "../types";
+import { useState, useMemo } from "react";
 import { mutate } from "swr";
+import { Task } from "../types";
 
-type Props = { onAddTask?: (task: Task) => void };
+// --- Opciones con tipos literales ---
+const PERIODICITIES = [
+  { value: "none", label: "Una vez" },
+  { value: "daily", label: "Diariamente" },
+  { value: "weekly", label: "Una vez a la semana" },
+  { value: "biweekly", label: "Cada 2 semanas" },
+  { value: "monthly", label: "Mensual" },
+] as const;
 
-export default function TaskForm({ onAddTask }: Props) {
+type Periodicity = typeof PERIODICITIES[number]["value"];
+
+const PRIORITIES = [
+  { value: "low", label: "Baja" },
+  { value: "medium", label: "Media" },
+  { value: "high", label: "Alta" },
+] as const;
+
+type Priority = typeof PRIORITIES[number]["value"];
+
+const ORGANIZATIONS = [
+  { value: "", label: "Selecciona una organización" },
+  { value: "mine", label: "Mis organizaciones" },
+  { value: "team", label: "Equipo de trabajo" },
+  { value: "external", label: "Externa" },
+] as const;
+
+type Organization = typeof ORGANIZATIONS[number]["value"];
+
+// ⬇️ Agregado: onClosePanel es opcional
+type Props = {
+  onAddTask?: (task: Task) => void;
+  onClosePanel?: () => void;
+};
+
+export default function TaskForm({ onAddTask, onClosePanel }: Props) {
   const [title, setTitle] = useState("");
-  const [day, setDay] = useState(0);
-  const [start, setStart] = useState(8);
-  const [end, setEnd] = useState(9);
   const [project, setProject] = useState("");
   const [color, setColor] = useState("bg-blue-300");
 
+  const [organization, setOrganization] = useState<Organization>("");
+  const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("12:00");
+  const [endTime, setEndTime] = useState("13:00");
+  const [periodicity, setPeriodicity] = useState<Periodicity>("weekly");
+  const [priority, setPriority] = useState<Priority>("low");
+  const [description, setDescription] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const day = useMemo(() => {
+    if (!date) return 0;
+    const d = new Date(date + "T00:00:00");
+    return d.getDay();
+  }, [date]);
+
+  const timeIsValid = useMemo(() => startTime < endTime, [startTime, endTime]);
+
+  const canSubmit =
+    title.trim().length > 0 && date !== "" && timeIsValid && !submitting;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canSubmit) return;
+
+    setSubmitting(true);
+
+    const startHour = Number(startTime.split(":")[0]);
+    const endHour = Number(endTime.split(":")[0]);
 
     const newTask: Task = {
       id: crypto.randomUUID(),
       title,
       day,
-      start,
-      end,
+      start: startHour,
+      end: endHour,
       project,
       color,
+      date,
+      startTime,
+      endTime,
+      periodicity,
+      priority,
+      organization,
+      description,
     };
 
-    // Callback local
     onAddTask?.(newTask);
-
-    // Feedback visual
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 500);
 
-    // Enviar al API
     await fetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newTask),
     });
 
-    // Refrescar SWR
     mutate("/api/tasks");
 
-    // Opcional: callback local
     onAddTask?.(newTask);
 
-    // Reset form
+    // Si quieres cerrar el panel automáticamente al crear:
+    // onClosePanel?.();
+
+    // reset
     setTitle("");
     setProject("");
-    setStart(8);
-    setEnd(9);
+    setOrganization("");
+    setDate("");
+    setStartTime("12:00");
+    setEndTime("13:00");
+    setPeriodicity("weekly");
+    setPriority("low");
+    setDescription("");
+    setSubmitting(false);
   };
-  const [submitted, setSubmitted] = useState(false);
-
-
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+      {/* Título */}
       <input
         type="text"
-        placeholder="Título"
+        placeholder="Nombre Tarea"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="border p-1 rounded"
+        className="border p-2 rounded"
         required
       />
-      <input
-        type="number"
-        placeholder="Día (0-6)"
-        value={day}
-        onChange={(e) => setDay(Number(e.target.value))}
-        min={0}
-        max={6}
-        className="border p-1 rounded"
-      />
-      <input
-        type="number"
-        placeholder="Hora inicio"
-        value={start}
-        onChange={(e) => setStart(Number(e.target.value))}
-        min={0}
-        max={23}
-        className="border p-1 rounded"
-      />
-      <input
-        type="number"
-        placeholder="Hora fin"
-        value={end}
-        onChange={(e) => setEnd(Number(e.target.value))}
-        min={0}
-        max={23}
-        className="border p-1 rounded"
-      />
+
+      {/* Proyecto y Organización */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <input
+          type="text"
+          placeholder="Proyecto"
+          value={project}
+          onChange={(e) => setProject(e.target.value)}
+          className="border p-2 rounded"
+        />
+        <select
+          value={organization}
+          onChange={(e) => setOrganization(e.target.value as Organization)}
+          className="border p-2 rounded"
+          required
+        >
+          {ORGANIZATIONS.map((org) => (
+            <option key={org.value} value={org.value}>
+              {org.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Fecha */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
+        <label className="text-sm text-gray-600">Fecha</label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="border p-2 rounded sm:col-span-2"
+          required
+        />
+      </div>
+
+      {/* Horario */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
+        <label className="text-sm text-gray-600">Horario</label>
+        <input
+          type="time"
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+          className="border p-2 rounded"
+          step={60}
+          required
+        />
+        <input
+          type="time"
+          value={endTime}
+          onChange={(e) => setEndTime(e.target.value)}
+          className="border p-2 rounded"
+          step={60}
+          required
+        />
+      </div>
+      {!timeIsValid && (
+        <p className="text-xs text-red-600">
+          La hora de fin debe ser posterior a la de inicio.
+        </p>
+      )}
+
+      {/* Periodicidad y Prioridad */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <select
+          value={periodicity}
+          onChange={(e) => setPeriodicity(e.target.value as Periodicity)}
+          className="border p-2 rounded"
+        >
+          {PERIODICITIES.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as Priority)}
+          className="border p-2 rounded"
+        >
+          {PRIORITIES.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Color */}
       <input
         type="text"
-        placeholder="Proyecto"
-        value={project}
-        onChange={(e) => setProject(e.target.value)}
-        className="border p-1 rounded"
+        placeholder="Clase de color Tailwind (ej. bg-blue-300)"
+        value={color}
+        onChange={(e) => setColor(e.target.value)}
+        className="border p-2 rounded"
       />
+
+      {/* Descripción */}
+      <textarea
+        placeholder="Descripción"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="border p-2 rounded min-h-[96px]"
+      />
+
+      {/* Botón */}
       <button
         type="submit"
-        className={`p-2 rounded text-white ${submitted ? "bg-green-500" : "bg-blue-500"} hover:bg-blue-600`}
+        disabled={!canSubmit}
+        className={`p-2 rounded text-white transition
+          ${submitted ? "bg-green-500" : "bg-blue-500"}
+          ${!canSubmit ? "opacity-60 cursor-not-allowed" : "hover:bg-blue-600"}`}
       >
-        Agregar
+        {submitting ? "Creando..." : "Crear tarea"}
       </button>
     </form>
   );
 }
+

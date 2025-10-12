@@ -1,10 +1,17 @@
-// src/app/types.ts
-export interface Task {
+export type Task = {
   id: string;
   title: string;
-  day: number;   // 0 = lunes, 1 = martes, etc.
-  start: number; // hora inicio (ej: 8)
-  end: number;   // hora fin (ej: 10)
+  day: number;
+  start: number;
+  end: number;
   project: string;
-  color: string; // clase de Tailwind, ej: "bg-blue-200"
-}
+  color: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  periodicity: "none" | "daily" | "weekly" | "biweekly" | "monthly";
+  priority: "low" | "medium" | "high";
+  organization: string;
+  description: string;
+};
+
