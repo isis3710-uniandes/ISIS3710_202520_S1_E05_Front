@@ -269,7 +269,7 @@ function EditModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-[min(480px,92vw)] p-4 space-y-3">
+      <div className="bg-black rounded-xl shadow-xl w-[min(480px,92vw)] p-4 space-y-3">
         <h2 className="font-semibold text-lg">Editar tarea</h2>
 
         <div className="grid grid-cols-1 gap-2">

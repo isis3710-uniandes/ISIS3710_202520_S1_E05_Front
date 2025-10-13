@@ -99,11 +99,11 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <nav className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-White/60">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-14 items-center justify-between">
           {/* Izquierda: Título */}
-          <div className="text-lg font-bold tracking-tight">OrganizApp </div>
+          <div className="text-lg font-bold tracking-tight text-blue-500">OrganizApp </div>
 
           {/* Centro: Links */}
           <ul className="hidden sm:flex items-center gap-1">
@@ -159,10 +159,10 @@ export default function Navbar() {
                     role="menu"
                     className="absolute right-0 mt-2 w-40 rounded-lg border border-gray-200 bg-white shadow-lg p-1"
                   >
-                    <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100">
+                    <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
                       Español
                     </button>
-                    <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100">
+                    <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
                       English
                     </button>
                   </div>
@@ -218,10 +218,10 @@ export default function Navbar() {
                     role="menu"
                     className="absolute right-0 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg p-1"
                   >
-                    <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100">
+                    <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
                       Ver perfil
                     </button>
-                    <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100">
+                    <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
                       Ajustes de Notificaciones
                     </button>
                     <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100 text-red-600">
