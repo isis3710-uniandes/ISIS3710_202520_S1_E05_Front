@@ -1,8 +1,8 @@
 "use client";
 import { useState, useMemo } from "react";
 import { Task } from "../types";
+import { useLocalOrgs } from "../hooks/useLocalOrgs";
 
-// --- Opciones con tipos literales ---
 const PERIODICITIES = [
   { value: "none", label: "Una vez" },
   { value: "daily", label: "Diariamente" },
@@ -21,11 +21,25 @@ const PRIORITIES = [
 
 type Priority = typeof PRIORITIES[number]["value"];
 
-import { useLocalOrgs } from "../hooks/useLocalOrgs";
+type Organization = string;
 
-type Organization = string; // will store org id or special values like "external"
+// paleta de colores alegre
+const COLOR_PALETTE = [
+  "bg-blue-300",
+  "bg-pink-300",
+  "bg-green-300",
+  "bg-yellow-300",
+  "bg-purple-300",
+  "bg-orange-300",
+  "bg-teal-300",
+  "bg-red-300",
+];
 
-// ⬇️ Agregado: onClosePanel es opcional
+function getRandomColor() {
+  const index = Math.floor(Math.random() * COLOR_PALETTE.length);
+  return COLOR_PALETTE[index];
+}
+
 type Props = {
   onAddTask?: (task: Task) => void;
   onClosePanel?: () => void;
@@ -34,9 +48,7 @@ type Props = {
 export default function TaskForm({ onAddTask, onClosePanel }: Props) {
   const [title, setTitle] = useState("");
   const [project, setProject] = useState("");
-  const [color, setColor] = useState("bg-blue-300");
-
-  const [organization, setOrganization] = useState<Organization>("");
+  const [organization, setOrganization] = useState<Organization>("none");
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("12:00");
   const [endTime, setEndTime] = useState("13:00");
@@ -45,6 +57,8 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
   const [description, setDescription] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const { orgs } = useLocalOrgs();
 
   const day = useMemo(() => {
     if (!date) return 0;
@@ -60,7 +74,6 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
-
     setSubmitting(true);
 
     const startHour = Number(startTime.split(":")[0]);
@@ -73,7 +86,7 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
       start: startHour,
       end: endHour,
       project,
-      color,
+      color: getRandomColor(), // color aleatorio al crear
       date,
       startTime,
       endTime,
@@ -83,35 +96,25 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
       description,
     };
 
-    // Persist locally using the provided callback
     onAddTask?.(newTask);
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 500);
 
-    // Si quieres cerrar el panel automáticamente al crear:
-    // onClosePanel?.();
-
-    // reset
     setTitle("");
     setProject("");
-    setOrganization("");
+    setOrganization("none");
     setDate("");
     setStartTime("12:00");
     setEndTime("13:00");
     setPeriodicity("weekly");
     setPriority("low");
     setDescription("");
-  // cerrar panel si el padre lo solicita
-  onClosePanel?.();
-  setSubmitting(false);
+    onClosePanel?.();
+    setSubmitting(false);
   };
-
-  // local orgs for the selector (created from the Organizacion page)
-  const { orgs } = useLocalOrgs();
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-      {/* Título */}
       <input
         type="text"
         placeholder="Nombre Tarea"
@@ -121,7 +124,6 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
         required
       />
 
-      {/* Proyecto y Organización */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <input
           type="text"
@@ -130,27 +132,21 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
           onChange={(e) => setProject(e.target.value)}
           className="border p-2 rounded"
         />
-        <div className="flex gap-2">
-          <select
-            value={organization}
-            onChange={(e) => setOrganization(e.target.value as Organization)}
-            className="border p-2 rounded flex-1"
-            required
-          >
-            <option value="">Selecciona una organización</option>
-            {orgs.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.name}
-              </option>
-            ))}
-            <option value="external">Externa</option>
-          </select>
-
-          {/* No inline org creation here — create organizations in the "Organización" page */}
-        </div>
+        <select
+          value={organization}
+          onChange={(e) => setOrganization(e.target.value as Organization)}
+          className="border p-2 rounded"
+          required
+        >
+          <option value="none">Ninguno</option>
+          {orgs.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.name}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* Fecha */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
         <label className="text-sm text-gray-600">Fecha</label>
         <input
@@ -162,7 +158,6 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
         />
       </div>
 
-      {/* Horario */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
         <label className="text-sm text-gray-600">Horario</label>
         <input
@@ -188,7 +183,6 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
         </p>
       )}
 
-      {/* Periodicidad y Prioridad */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <select
           value={periodicity}
@@ -214,16 +208,6 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
         </select>
       </div>
 
-      {/* Color */}
-      <input
-        type="text"
-        placeholder="Clase de color Tailwind (ej. bg-blue-300)"
-        value={color}
-        onChange={(e) => setColor(e.target.value)}
-        className="border p-2 rounded"
-      />
-
-      {/* Descripción */}
       <textarea
         placeholder="Descripción"
         value={description}
@@ -231,7 +215,6 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
         className="border p-2 rounded min-h-[96px]"
       />
 
-      {/* Botón */}
       <button
         type="submit"
         disabled={!canSubmit}
@@ -244,4 +227,3 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
     </form>
   );
 }
-
