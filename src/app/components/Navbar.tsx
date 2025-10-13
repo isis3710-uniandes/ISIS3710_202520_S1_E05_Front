@@ -42,8 +42,8 @@ function IconUser(props: React.SVGProps<SVGSVGElement>) {
 /* ====== Links de navegación ====== */
 const links = [
   { href: "/", label: "Inicio" },
-  { href: "/recomendaciones", label: "Recomendaciones" },
-  { href: "/organizacion", label: "Organización" },
+  { href: "/recomendaciones", label: "Administra tu Tiempo" },
+  { href: "/organizacion", label: "Gestionar Organizaciones" },
 ];
 
 export default function Navbar() {
@@ -103,7 +103,7 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-14 items-center justify-between">
           {/* Izquierda: Título */}
-          <div className="text-lg font-bold tracking-tight">Mi App de Tareas</div>
+          <div className="text-lg font-bold tracking-tight">OrganizApp </div>
 
           {/* Centro: Links */}
           <ul className="hidden sm:flex items-center gap-1">
@@ -165,9 +165,6 @@ export default function Navbar() {
                     <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100">
                       English
                     </button>
-                    <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100">
-                      Português
-                    </button>
                   </div>
                 )}
               </div>
@@ -225,7 +222,7 @@ export default function Navbar() {
                       Ver perfil
                     </button>
                     <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100">
-                      Ajustes
+                      Ajustes de Notificaciones
                     </button>
                     <button className="w-full text-left text-sm px-3 py-2 rounded hover:bg-gray-100 text-red-600">
                       Cerrar sesión

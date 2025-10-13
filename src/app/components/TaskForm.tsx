@@ -50,9 +50,9 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
   const [project, setProject] = useState("");
   const [organization, setOrganization] = useState<Organization>("none");
   const [date, setDate] = useState("");
-  const [startTime, setStartTime] = useState("12:00");
-  const [endTime, setEndTime] = useState("13:00");
-  const [periodicity, setPeriodicity] = useState<Periodicity>("weekly");
+  const [startTime, setStartTime] = useState("6:00");
+  const [endTime, setEndTime] = useState("8:00");
+  const [periodicity, setPeriodicity] = useState<Periodicity>("none");
   const [priority, setPriority] = useState<Priority>("low");
   const [description, setDescription] = useState("");
   const [submitted, setSubmitted] = useState(false);

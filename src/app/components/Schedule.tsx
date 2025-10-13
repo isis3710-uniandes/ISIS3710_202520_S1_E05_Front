@@ -483,7 +483,7 @@ export default function Schedule({ tasks: propTasks, handlers }: Props) {
       <div className="flex items-center justify-between mb-2 px-1">
         <div className="flex items-center gap-2">
           <button type="button" onClick={goPrevWeek} className="px-2 py-1 rounded border hover:bg-black/5" aria-label="Semana anterior" title="Semana anterior">←</button>
-          <button type="button" onClick={goToday}    className="px-2 py-1 rounded border hover:bg-black/5" aria-label="Ir a hoy"         title="Ir a hoy">Hoy</button>
+          <button type="button" onClick={goToday}    className="px-2 py-1 rounded border hover:bg-black/5" aria-label="Ir a hoy"         title="Ir a hoy">Esta Semana</button>
           <button type="button" onClick={goNextWeek} className="px-2 py-1 rounded border hover:bg-black/5" aria-label="Semana siguiente" title="Semana siguiente">→</button>
         </div>
         <div className="text-sm text-gray-700 font-medium">
