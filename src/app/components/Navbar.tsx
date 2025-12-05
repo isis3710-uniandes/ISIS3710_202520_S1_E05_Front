@@ -39,6 +39,22 @@ function IconUser(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+function IconMenu(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="24" height="24" {...props}>
+      <path d="M3 12h18M3 6h18M3 18h18" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconClose(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="24" height="24" {...props}>
+      <path d="M18 6L6 18M6 6l12 12" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /* ====== Links de navegación ====== */
 const links = [
   { href: "/", label: "Inicio" },
@@ -65,17 +81,20 @@ export default function Navbar() {
   const [openLang, setOpenLang] = useState(false);
   const [openNotif, setOpenNotif] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Refs de los menús
   const langRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   // Cerrar al hacer click fuera
-  useOnClickOutside([langRef, notifRef, profileRef], () => {
+  useOnClickOutside([langRef, notifRef, profileRef, mobileMenuRef], () => {
     setOpenLang(false);
     setOpenNotif(false);
     setOpenProfile(false);
+    setMobileMenuOpen(false);
   });
 
   // Cerrar con Escape
@@ -85,6 +104,7 @@ export default function Navbar() {
         setOpenLang(false);
         setOpenNotif(false);
         setOpenProfile(false);
+        setMobileMenuOpen(false);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -103,10 +123,10 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-14 items-center justify-between">
           {/* Izquierda: Título */}
-          <div className="text-lg font-bold tracking-tight text-blue-500">OrganizApp </div>
+          <div className="text-lg font-bold tracking-tight text-blue-500">OrganizApp</div>
 
-          {/* Centro: Links */}
-          <ul className="hidden sm:flex items-center gap-1">
+          {/* Centro: Links (Desktop) */}
+          <ul className="hidden md:flex items-center gap-1">
             {links.map((l) => {
               const isActive = activeMap[l.href];
               return (
@@ -130,17 +150,17 @@ export default function Navbar() {
 
           {/* Derecha: Nueva tarea + iconos */}
           <div className="flex items-center gap-2">
-            {/* Nueva tarea */}
+            {/* Nueva tarea (Desktop) */}
             <button
               type="button"
               onClick={toggleTaskPanel}
-              className="ml-2 px-3 py-2 rounded-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.99] shadow-sm"
+              className="hidden sm:block ml-2 px-3 py-2 rounded-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.99] shadow-sm"
             >
               Nueva tarea
             </button>
 
-            {/* Iconos */}
-            <div className="flex items-center gap-1 ml-2">
+            {/* Iconos (Desktop) */}
+            <div className="hidden sm:flex items-center gap-1 ml-2">
               {/* Internacionalización */}
               <div className="relative" ref={langRef}>
                 <button
@@ -231,8 +251,93 @@ export default function Navbar() {
                 )}
               </div>
             </div>
+
+            {/* Hamburger Menu Button (Mobile) */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="sm:hidden size-9 grid place-items-center rounded-md border border-gray-200 text-gray-700 hover:bg-gray-100"
+              aria-label="Menú"
+            >
+              {mobileMenuOpen ? <IconClose /> : <IconMenu />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div
+            ref={mobileMenuRef}
+            className="sm:hidden border-t border-gray-200 py-3 space-y-2"
+          >
+            {/* Mobile Navigation Links */}
+            {links.map((l) => {
+              const isActive = activeMap[l.href];
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-current={isActive ? "page" : undefined}
+                  className={[
+                    "block px-3 py-2 rounded-md text-sm font-medium transition",
+                    isActive
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-700 hover:bg-gray-100",
+                  ].join(" ")}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
+
+            {/* Mobile New Task Button */}
+            <button
+              type="button"
+              onClick={() => {
+                toggleTaskPanel();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full px-3 py-2 rounded-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.99] shadow-sm"
+            >
+              Nueva tarea
+            </button>
+
+            {/* Mobile Icon Buttons */}
+            <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
+              {/* Language */}
+              <button
+                type="button"
+                onClick={() => toggleOne("lang")}
+                className="flex-1 px-3 py-2 rounded-md text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-100 flex items-center justify-center gap-2"
+              >
+                <IconGlobe />
+                <span>Idioma</span>
+              </button>
+
+              {/* Notifications */}
+              <button
+                type="button"
+                onClick={() => toggleOne("notif")}
+                className="flex-1 px-3 py-2 rounded-md text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-100 flex items-center justify-center gap-2 relative"
+              >
+                <IconBell />
+                <span>Notif.</span>
+                <span className="absolute top-1 right-1 block w-2 h-2 bg-red-500 rounded-full" />
+              </button>
+
+              {/* Profile */}
+              <button
+                type="button"
+                onClick={() => toggleOne("profile")}
+                className="flex-1 px-3 py-2 rounded-md text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-100 flex items-center justify-center gap-2"
+              >
+                <IconUser />
+                <span>Perfil</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
