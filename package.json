@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:test": "next dev -p 3000",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "test:e2e": "npm run dev:test & npx wait-on http://localhost:3000 && npm run cy:run"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
@@ -20,12 +24,14 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20.19.19",
+    "@types/node": "^20.19.21",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",
+    "cypress": "^15.4.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.7",
     "tailwindcss": "^4.1.14",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wait-on": "^9.0.1"
   }
 }
