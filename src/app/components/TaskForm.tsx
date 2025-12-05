@@ -149,123 +149,153 @@ export default function TaskForm({ onAddTask, onClosePanel }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-2">
-      <input
-        type="text"
-        placeholder="Título de la tarea"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="border p-2 rounded"
-        required
-      />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-semibold text-gray-900">
+          Título de la tarea <span className="text-red-600">*</span>
+        </label>
+        <input
+          type="text"
+          placeholder="Ej: Reunión de equipo"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="border border-gray-300 bg-white text-black font-medium text-base px-3 py-2.5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500"
+          required
+        />
+      </div>
 
-      <input
-        type="text"
-        placeholder="Proyecto (opcional)"
-        value={project}
-        onChange={(e) => setProject(e.target.value)}
-        className="border p-2 rounded"
-      />
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-semibold text-gray-900">
+          Proyecto
+        </label>
+        <input
+          type="text"
+          placeholder="Ej: Desarrollo Web"
+          value={project}
+          onChange={(e) => setProject(e.target.value)}
+          className="border border-gray-300 bg-white text-black font-medium text-base px-3 py-2.5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500"
+        />
+      </div>
 
-      <input
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        className="border p-2 rounded"
-        required
-      />
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-semibold text-gray-900">
+          Fecha <span className="text-red-600">*</span>
+        </label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="border border-gray-300 bg-white text-black font-semibold text-base px-3 py-2.5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 [color-scheme:light]"
+          required
+        />
+      </div>
 
-      <div className="flex gap-2">
-        <div className="flex flex-col flex-1">
-          <label className="text-xs text-gray-600 mb-1">Hora inicio</label>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-semibold text-gray-900">
+            Hora inicio <span className="text-red-600">*</span>
+          </label>
           <input
             type="time"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="border p-2 rounded"
+            className="border border-gray-300 bg-white text-black font-semibold text-base px-3 py-2.5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 [color-scheme:light]"
             required
           />
         </div>
-        <div className="flex flex-col flex-1">
-          <label className="text-xs text-gray-600 mb-1">Hora fin</label>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-semibold text-gray-900">
+            Hora fin <span className="text-red-600">*</span>
+          </label>
           <input
             type="time"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="border p-2 rounded"
+            className="border border-gray-300 bg-white text-black font-semibold text-base px-3 py-2.5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 [color-scheme:light]"
             required
           />
         </div>
       </div>
 
-      <div className="flex flex-col">
-        <label className="text-xs text-gray-600 mb-1">Periodicidad</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-semibold text-gray-900">
+          Periodicidad
+        </label>
         <select
           value={periodicity}
           onChange={(e) => setPeriodicity(e.target.value as Periodicity)}
-          className="border p-2 rounded"
+          className="border border-gray-300 bg-white text-black font-semibold text-base px-3 py-2.5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           {PERIODICITIES.map((p) => (
-            <option key={p.value} value={p.value}>
+            <option key={p.value} value={p.value} className="text-black font-semibold">
               {p.label}
             </option>
           ))}
         </select>
       </div>
 
-      <div className="flex flex-col">
-        <label className="text-xs text-gray-600 mb-1">Prioridad</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-semibold text-gray-900">
+          Prioridad
+        </label>
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value as Priority)}
-          className="border p-2 rounded"
+          className="border border-gray-300 bg-white text-black font-semibold text-base px-3 py-2.5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           {PRIORITIES.map((p) => (
-            <option key={p.value} value={p.value}>
+            <option key={p.value} value={p.value} className="text-black font-semibold">
               {p.label}
             </option>
           ))}
         </select>
       </div>
 
-      <div className="flex flex-col">
-        <label className="text-xs text-gray-600 mb-1">Organización</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-semibold text-gray-900">
+          Organización <span className="text-red-600">*</span>
+        </label>
         <select
           value={organization}
           onChange={(e) =>
             setOrganization(e.target.value as Organization)
           }
-          className="border p-2 rounded"
+          className="border border-gray-300 bg-white text-black font-semibold text-base px-3 py-2.5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           required
         >
-          <option value="none">Ninguno</option>
+          <option value="none" className="text-black font-semibold">Ninguno</option>
           {orgs.map((o) => (
-            <option key={o.id} value={o.id}>
+            <option key={o.id} value={o.id} className="text-black font-semibold">
               {o.name}
             </option>
           ))}
         </select>
       </div>
 
-      <textarea
-        placeholder="Descripción (opcional)"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="border p-2 rounded min-h-[60px]"
-      />
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-semibold text-gray-900">
+          Descripción
+        </label>
+        <textarea
+          placeholder="Agrega detalles adicionales..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="border border-gray-300 bg-white text-black font-medium text-base px-3 py-2.5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500 min-h-[80px] resize-none"
+        />
+      </div>
 
       <button
         type="submit"
         disabled={!canSubmit}
-        className={`p-2 rounded text-white transition
-          ${submitted ? "bg-green-500" : "bg-blue-500"}
+        className={`px-4 py-2.5 rounded-md font-semibold text-white transition-all shadow-sm
+          ${submitted ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
           ${
             !canSubmit
-              ? "opacity-60 cursor-not-allowed"
-              : "hover:bg-blue-600"
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:shadow-md active:scale-[0.98]"
           }`}
       >
-        {submitting ? "Creando..." : "Crear tarea"}
+        {submitting ? "Creando..." : submitted ? "✓ Tarea creada" : "Crear tarea"}
       </button>
     </form>
   );

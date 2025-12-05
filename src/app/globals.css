@@ -112,6 +112,7 @@ button.btn.secondary {
   border: 1px solid rgba(0,0,0,0.06);
 }
 
+/* Estilos base comentados para permitir estilos personalizados por componente
 input,
 select,
 textarea {
@@ -123,6 +124,7 @@ textarea {
   background: transparent;
   color: inherit;
 }
+*/
 
 /* Helpers para el layout del proyecto */
 .page {

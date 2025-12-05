@@ -21,7 +21,7 @@ export default function Home() {
         {/* Panel lateral para crear tarea - Desktop (hidden on mobile) */}
         {isTaskPanelOpen && (
           <div className="hidden lg:block w-80">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
               {/* Botón X para cerrar el panel */}
               <button
                 type="button"
@@ -32,7 +32,7 @@ export default function Home() {
                 ✕
               </button>
 
-              <h2 className="text-xl font-bold">Nueva tarea</h2>
+              <h2 className="text-xl font-bold text-gray-900">Nueva tarea</h2>
             </div>
 
             <TaskForm onAddTask={addTask} onClosePanel={closeTaskPanel} />
@@ -64,7 +64,7 @@ export default function Home() {
                 </svg>
               </button>
 
-              <h2 className="text-xl font-bold">Nueva tarea</h2>
+              <h2 className="text-xl font-bold text-gray-900">Nueva tarea</h2>
             </div>
 
             <div className="p-4">
