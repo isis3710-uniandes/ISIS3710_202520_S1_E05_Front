@@ -1,60 +1,70 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
 
-export type Org = {
+import useSWR from "swr";
+
+export type Organization = {
   id: string;
   name: string;
+  description?: string;
   emails: string[];
-  createdAt: string;
+  createdAt: string; // la BD siempre manda esto
 };
 
-const STORAGE_KEY = "orgs";
-
-function uid() {
-  return Math.random().toString(36).slice(2);
-}
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function useLocalOrgs() {
-  const [orgs, setOrgs] = useState<Org[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as Org[]) : [];
-    } catch {
-      return [];
-    }
+  const {
+    data,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<Organization[]>("/api/organizations", fetcher, {
+    fallbackData: [],
   });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(orgs));
-    } catch {
-      // noop
-    }
-  }, [orgs]);
+  const orgs = data ?? [];
 
-  const addOrg = useCallback((name: string, emails: string[] = []) => {
-    const o: Org = { id: uid(), name, emails, createdAt: new Date().toISOString() };
-    setOrgs((p) => [o, ...p]);
-    return o;
-  }, []);
+  // 👇 FIRMA COMPATIBLE CON TU page.tsx
+  async function addOrg(
+    name: string,
+    emails: string[],
+    description?: string,
+  ): Promise<Organization> {
+    const payload = { name, emails, description };
 
-  const deleteOrg = useCallback((id: string) => {
-    setOrgs((p) => p.filter((o) => o.id !== id));
-  }, []);
-
-  const updateOrg = useCallback((id: string, patch: Partial<Org>) => {
-    setOrgs((p) => p.map((o) => (o.id === id ? { ...o, ...patch } : o)));
-  }, []);
-
-  const sortOrgs = useCallback((by: "created" | "name" = "created") => {
-    setOrgs((p) => {
-      const copy = [...p];
-      if (by === "name") copy.sort((a, b) => a.name.localeCompare(b.name));
-      else copy.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-      return copy;
+    const res = await fetch("/api/organizations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
-  }, []);
 
-  return { orgs, setOrgs, addOrg, deleteOrg, updateOrg, sortOrgs } as const;
+    if (!res.ok) {
+      throw new Error(await res.text());
+    }
+
+    const created: Organization = await res.json();
+    await mutate(); // refresca la lista
+    return created;
+  }
+
+  async function deleteOrg(id: string): Promise<void> {
+    const res = await fetch(`/api/organizations/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      throw new Error(await res.text());
+    }
+
+    await mutate();
+  }
+
+  return {
+    orgs,
+    error,
+    isLoading,
+    refresh: mutate,
+    addOrg,
+    deleteOrg,
+  };
 }

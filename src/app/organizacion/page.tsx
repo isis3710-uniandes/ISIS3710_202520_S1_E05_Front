@@ -1,261 +1,216 @@
-// app/organizacion/page.tsx
-// Front-only page (no backend) to manage organizations.
-// 1) Create new organization with name + emails
-// 2) Dropdown listing existing organizations
-// 3) Delete organizations
-// Dark UI (black bg, white text). Data persisted in localStorage.
-
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
+import { useLocalOrgs, Organization } from "../hooks/useLocalOrgs";
 
-/* ----------------------- Types ----------------------- */
-import { useLocalOrgs } from "../../app/hooks/useLocalOrgs";
+function CreateOrgForm({
+  onAdd,
+}: {
+  onAdd: (name: string, emails: string[]) => void;
+}) {
+  const [name, setName] = useState("");
+  const [emailsInput, setEmailsInput] = useState("");
 
-/* ----------------------- Utils ----------------------- */
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
 
-/* ----------------------- Page ----------------------- */
-export default function OrgsPage() {
-  const { orgs, addOrg, deleteOrg } = useLocalOrgs();
-  const [selectedOrgId, setSelectedOrgId] = useState<string>("");
+    const emails = emailsInput
+      .split(",")
+      .map((e) => e.trim())
+      .filter(Boolean);
 
-  useEffect(() => {
-    if (!selectedOrgId && orgs[0]) setSelectedOrgId(orgs[0].id);
-  }, [orgs, selectedOrgId]);
+    onAdd(trimmedName, emails);
 
-  const selectedOrg = useMemo(
-    () => orgs.find((o) => o.id === selectedOrgId),
-    [orgs, selectedOrgId]
-  );
-
-  function handleAddOrg(name: string, emails: string[]) {
-    const created = addOrg(name, emails);
-    setSelectedOrgId(created.id);
-  }
-
-  function handleDeleteOrg(id: string) {
-    deleteOrg(id);
-    if (selectedOrgId === id) setSelectedOrgId("");
+    setName("");
+    setEmailsInput("");
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      <div className="mx-auto max-w-4xl px-6 py-8 space-y-8">
-        <header className="flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-semibold">Organizaciones</h1>
-        </header>
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-3 p-4 rounded-lg bg-white shadow"
+    >
+      <h2 className="text-sm font-semibold text-gray-700">
+        Crear nueva organización
+      </h2>
 
-        {/* Crear organización */}
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <h2 className="text-lg font-medium mb-3">Crear nueva organización</h2>
-          <CreateOrgForm onCreate={handleAddOrg} />
-        </section>
-
-        {/* Selector y listado */}
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
-          <h2 className="text-lg font-medium">Mis organizaciones</h2>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="text-sm text-white/80">Seleccionar:</label>
-            <select
-              className="bg-black text-white border border-white/20 rounded-md px-3 py-2"
-              value={selectedOrgId}
-              onChange={(e) => setSelectedOrgId(e.target.value)}
-            >
-              {orgs.length === 0 && <option value="">(sin organizaciones)</option>}
-              {orgs.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Listado + eliminar */}
-          <ul className="divide-y divide-white/10">
-            {orgs.map((o) => (
-              <li key={o.id} className="flex items-center justify-between py-3">
-                <div className="min-w-0">
-                  <div className="font-medium truncate">{o.name}</div>
-                  <div className="text-xs text-white/60 truncate">
-                    {o.emails.length} miembro(s) {"\u00b7"} {new Date(o.createdAt).toLocaleString()}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="text-xs px-3 py-1 rounded-md border border-white/20 hover:bg-white/10 transition"
-                    onClick={() => setSelectedOrgId(o.id)}
-                  >
-                    Ver
-                  </button>
-                  <button
-                    className="text-xs px-3 py-1 rounded-md border border-red-500/40 text-red-400 hover:bg-red-500/10 transition"
-                    onClick={() => {
-                      if (
-                        confirm(`¿Eliminar "${o.name}"? Esta acción no se puede deshacer.`)
-                      ) {
-                        handleDeleteOrg(o.id);
-                      }
-                    }}
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-          {selectedOrg && (
-            <div className="mt-4 rounded-xl border border-white/10 p-4">
-              <div className="text-sm text-white/70">Organización seleccionada</div>
-              <div className="text-xl font-semibold">{selectedOrg.name}</div>
-              <div className="mt-2">
-                <div className="text-sm text-white/70">
-                  Miembros ({selectedOrg.emails.length})
-                </div>
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {selectedOrg.emails.length === 0 && (
-                    <span className="text-white/50 text-sm">(sin miembros)</span>
-                  )}
-                  {selectedOrg.emails.map((e) => (
-                    <span
-                      key={e}
-                      className="text-xs bg-white/10 border border-white/10 rounded-full px-2 py-1"
-                    >
-                      {e}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
-
-        <footer className="text-xs text-white/50"></footer>
+      <div className="space-y-1">
+        <label className="block text-xs font-medium text-gray-600">
+          Nombre
+        </label>
+        <input
+          className="w-full rounded-md border px-2 py-1 text-sm"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Universidad, Trabajo, Proyecto..."
+        />
       </div>
-    </main>
+
+      <div className="space-y-1">
+        <label className="block text-xs font-medium text-gray-600">
+          Correos (separados por coma)
+        </label>
+        <input
+          className="w-full rounded-md border px-2 py-1 text-sm"
+          value={emailsInput}
+          onChange={(e) => setEmailsInput(e.target.value)}
+          placeholder="correo1@example.com, correo2@example.com"
+        />
+      </div>
+
+      <button
+        type="submit"
+        className="w-full rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+      >
+        Guardar organización
+      </button>
+    </form>
   );
 }
 
-/* ----------------------- Components ----------------------- */
+export default function OrgsPage() {
+  const { orgs, addOrg, deleteOrg, isLoading } = useLocalOrgs();
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
 
-function CreateOrgForm({
-  onCreate,
-}: {
-  onCreate: (name: string, emails: string[]) => void;
-}) {
-  const [name, setName] = useState("");
-  const [input, setInput] = useState("");
-  const [emails, setEmails] = useState<string[]>([]);
+  // Organización seleccionada (siempre que exista alguna)
+  const selectedOrg: Organization | undefined = useMemo(() => {
+    if (!orgs.length) return undefined;
+    if (!selectedOrgId) return orgs[0];
+    return orgs.find((o) => o.id === selectedOrgId) ?? orgs[0];
+  }, [orgs, selectedOrgId]);
 
-  function pushFromInput() {
-    const parts = input
-      .split(/[ ,;]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (!parts.length) return;
-
-    const valid = parts.filter((p) => emailRegex.test(p));
-    const invalid = parts.filter((p) => !emailRegex.test(p));
-    const next = Array.from(new Set([...emails, ...valid]));
-    setEmails(next);
-    setInput("");
-
-    if (invalid.length)
-      alert(`Emails inválidos ignorados: ${invalid.join(", ")}`);
+  async function handleAddOrg(name: string, emails: string[]) {
+    try {
+      const created = await addOrg(name, emails);
+      setSelectedOrgId(created.id);
+    } catch (err) {
+      console.error("Error creando organización", err);
+    }
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim()) return alert("Ponle un nombre a la organización");
-    if (input.trim()) pushFromInput();
-    onCreate(name.trim(), emails);
-    setName("");
-    setInput("");
-    setEmails([]);
-  }
-
-  function removeEmail(x: string) {
-    setEmails((prev) => prev.filter((e) => e !== x));
+  async function handleDeleteOrg(id: string) {
+    try {
+      await deleteOrg(id);
+      if (selectedOrgId === id) {
+        setSelectedOrgId(null);
+      }
+    } catch (err) {
+      console.error("Error eliminando organización", err);
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <label className="md:col-span-1 text-sm text-white/80">
-          Nombre de la organización
-        </label>
-        <div className="md:col-span-2">
-          <input
-            className="w-full bg-black text-white border border-white/20 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/20"
-            placeholder="Ej: Acme Corp"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-      </div>
+    <main className="min-h-screen bg-slate-50 p-4">
+      <div className="mx-auto flex max-w-5xl flex-col gap-6 md:flex-row">
+        {/* Lado izquierdo: lista + formulario */}
+        <div className="flex-1 space-y-4">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestionar Organizaciones
+          </h1>
+          <p className="text-sm text-gray-600">
+            Crea organizaciones (Universidad, trabajo, proyectos, etc.) y
+            asócialas con tus tareas.
+          </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
-        <label className="md:col-span-1 text-sm text-white/80">
-          Correos de miembros
-        </label>
-        <div className="md:col-span-2 space-y-2">
-          <div className="flex items-center gap-2">
-            <input
-              className="flex-1 bg-black text-white border border-white/20 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/20"
-              placeholder="maria@acme.com, juan@acme.com"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  pushFromInput();
-                }
-              }}
-            />
-            <button
-              type="button"
-              className="px-3 py-2 text-sm border border-white/20 rounded-md hover:bg-white/10"
-              onClick={pushFromInput}
-            >
-              Añadir
-            </button>
-          </div>
+          <div className="rounded-xl bg-slate-900 p-3 text-white shadow">
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-sm font-semibold">Organizaciones</h2>
+              {isLoading && (
+                <span className="text-xs text-white/60">Cargando...</span>
+              )}
+            </div>
 
-          <div className="flex flex-wrap gap-2">
-            {emails.map((e) => (
-              <span
-                key={e}
-                className="text-xs bg-white/10 border border-white/10 rounded-full px-2 py-1 inline-flex items-center gap-2"
-              >
-                {e}
-                <button
-                  type="button"
-                  className="text-white/60 hover:text-white/90"
-                  onClick={() => removeEmail(e)}
-                  aria-label={`Eliminar ${e}`}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            {emails.length === 0 && (
-              <span className="text-xs text-white/50">
-                (Agrega correos y presiona “Añadir” o Enter)
-              </span>
+            {!orgs.length && (
+              <p className="text-xs text-white/70">
+                Aún no tienes organizaciones. Crea una con el formulario de la
+                derecha.
+              </p>
             )}
+
+            <div className="mt-2 space-y-2">
+              {orgs.map((o) => {
+                const selected = selectedOrg && selectedOrg.id === o.id;
+                const createdLabel = o.createdAt
+                  ? new Date(o.createdAt).toLocaleString()
+                  : "Sin fecha";
+                return (
+                  <button
+                    key={o.id}
+                    onClick={() => setSelectedOrgId(o.id)}
+                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition ${
+                      selected ? "bg-blue-600" : "bg-slate-800 hover:bg-slate-700"
+                    }`}
+                  >
+                    <div>
+                      <div className="font-medium truncate">{o.name}</div>
+                      <div className="text-xs text-white/60 truncate">
+                        {o.emails.length} miembro(s) · {createdLabel}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteOrg(o.id);
+                      }}
+                      className="ml-2 rounded-full bg-slate-700 px-2 py-1 text-xs text-white/80 hover:bg-red-500"
+                    >
+                      Eliminar
+                    </button>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          className="px-4 py-2 rounded-md border border-white/30 hover:bg-white/10 transition"
-        >
-          Crear organización
-        </button>
+        {/* Lado derecho: detalle + formulario */}
+        <div className="flex w-full flex-1 flex-col gap-4 md:max-w-sm">
+          <CreateOrgForm onAdd={handleAddOrg} />
+
+          {selectedOrg && (
+            <div className="space-y-3 rounded-lg bg-white p-4 shadow">
+              <h2 className="text-sm font-semibold text-gray-800">
+                Detalle de organización
+              </h2>
+
+              <div>
+                <div className="text-base font-medium text-gray-900">
+                  {selectedOrg.name}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {selectedOrg.createdAt
+                    ? `Creada el ${new Date(
+                        selectedOrg.createdAt,
+                      ).toLocaleString()}`
+                    : "Sin fecha de creación"}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-semibold text-gray-700">
+                  Correos registrados
+                </h3>
+                {selectedOrg.emails.length === 0 ? (
+                  <p className="text-xs text-gray-500">
+                    No hay correos asociados.
+                  </p>
+                ) : (
+                  <ul className="mt-1 space-y-1 text-xs text-gray-700">
+                    {selectedOrg.emails.map((email) => (
+                      <li key={email} className="truncate">
+                        • {email}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </form>
+    </main>
   );
 }
